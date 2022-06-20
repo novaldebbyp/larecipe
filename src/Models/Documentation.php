@@ -50,11 +50,14 @@ class Documentation
             $path = base_path(config('larecipe.docs.path').'/'.$version.'/index.md');
 
             if ($this->files->exists($path)) {
-                $parsedContent = $this->parse($this->files->get($path));
+                $content = $this->files->get($path);
+                $content = $this->replaceLinks($version, $content);
+                $content = $this->renderBlade($content, []);
+                $content = $this->parse($content);
 
-                return $this->replaceLinks($version, $parsedContent);
+                return $content;
             }
-
+            
             return null;
         }, 'larecipe.docs.'.$version.'.index');
     }
@@ -95,7 +98,8 @@ class Documentation
     {
         $content = str_replace('{{version}}', $version, $content);
 
-        $content = str_replace('{{route}}', trim(config('larecipe.docs.route'), '/'), $content);
+        $content = str_replace('{{route}}', config('app.url') . trim(config('larecipe.docs.route'), '/'), $content);
+        $content = str_replace('{{baseurl}}', config('app.url'), $content);
 
         $content = str_replace('"#', '"'.request()->getRequestUri().'#', $content);
 
